@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     // Instantly purge the sitemap cache for real-time indexing
     revalidatePath("/sitemap.xml");
     return NextResponse.json({ revalidated: true, now: Date.now() });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ message: "Error revalidating" }, { status: 500 });
   }
 }

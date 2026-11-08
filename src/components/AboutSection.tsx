@@ -1,4 +1,5 @@
-import { CheckCircle2, ShieldCheck, Wrench, Sparkles } from "lucide-react";
+import Image from "next/image";
+import { ShieldCheck, Wrench } from "lucide-react";
 
 export default function AboutSection() {
   return (
@@ -7,11 +8,14 @@ export default function AboutSection() {
         
         {/* Left Column: Studio Photo/Collage */}
         <div className="lg:col-span-6 relative">
-          <div className="relative rounded-2xl overflow-hidden border border-white/15 shadow-2xl">
-            <img 
+          <div className="relative h-[550px] rounded-2xl overflow-hidden border border-white/15 shadow-2xl">
+            <Image
               src="https://images.unsplash.com/photo-1542744094-3a31246263d0?q=80&w=1200&auto=format&fit=crop" 
               alt="Noockie Graphics Studio Workshop" 
-              className="w-full h-[550px] object-cover"
+              fill
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              unoptimized
+              className="object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-transparent to-transparent opacity-80" />
             <div className="absolute bottom-8 left-8 right-8 bg-charcoal/90 backdrop-blur-md p-6 rounded-xl border border-white/10">

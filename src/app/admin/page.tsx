@@ -44,7 +44,7 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<"overview" | "inquiries" | "portfolio" | "settings">("overview");
   
   // State for Inquiries / Leads
-  const [inquiries, setInquiries] = useState<Inquiry[]>([
+  const inquiries: Inquiry[] = [
     {
       id: "INQ-001",
       name: "Chef David Mwangi",
@@ -78,7 +78,7 @@ export default function AdminDashboard() {
       phone: "+254 733 111 222",
       email: "omar@swahilispice.co.ke"
     }
-  ]);
+  ];
 
   // State for Portfolio Projects
   const [projects, setProjects] = useState<Project[]>([

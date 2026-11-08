@@ -1,4 +1,5 @@
 import { ArrowRight, Sparkles } from "lucide-react";
+import Image from "next/image";
 
 export default function Hero() {
   return (
@@ -53,12 +54,15 @@ export default function Hero() {
 
         {/* Right Column: Hero Visual Feature */}
         <div className="lg:col-span-5 relative">
-          <div className="relative rounded-2xl overflow-hidden border border-white/15 shadow-2xl group">
+          <div className="relative h-[500px] rounded-2xl overflow-hidden border border-white/15 shadow-2xl group">
             <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-transparent to-transparent z-10 opacity-60" />
-            <img 
+            <Image
               src="https://images.unsplash.com/photo-1563986768609-322da13575f3?q=80&w=1200&auto=format&fit=crop" 
               alt="3D Illuminated Signage Installation" 
-              className="w-full h-[500px] object-cover group-hover:scale-105 transition-transform duration-700"
+              fill
+              sizes="(min-width: 1024px) 40vw, 100vw"
+              unoptimized
+              className="object-cover group-hover:scale-105 transition-transform duration-700"
             />
             <div className="absolute bottom-6 left-6 right-6 z-20 bg-charcoal/80 backdrop-blur-md p-4 rounded-xl border border-white/10">
               <span className="text-xs font-mono text-accent uppercase tracking-widest">Featured Fabrication</span>

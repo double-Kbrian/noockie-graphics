@@ -1,5 +1,6 @@
 import { servicesData } from "@/data/services";
 import { ArrowUpRight } from "lucide-react";
+import Image from "next/image";
 
 export default function ServicesGrid() {
   return (
@@ -22,9 +23,12 @@ export default function ServicesGrid() {
           >
             <div className="relative h-48 overflow-hidden">
               <div className="absolute inset-0 bg-charcoal/20 z-10 group-hover:bg-transparent transition-colors" />
-              <img 
+              <Image
                 src={service.image} 
                 alt={service.title} 
+                fill
+                sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                unoptimized
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
               <span className="absolute top-4 left-4 z-20 font-mono text-xs bg-charcoal/80 backdrop-blur-md px-3 py-1 rounded-full text-accent font-bold">

@@ -174,7 +174,11 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en-KE" className={`${spaceGrotesk.variable} ${inter.variable}`}>
+    <html
+      lang="en-KE"
+      className={`${spaceGrotesk.variable} ${inter.variable}`}
+      data-scroll-behavior="smooth"
+    >
       <head>
         {/* Inject JSON-LD Schema for Local SEO */}
         <script

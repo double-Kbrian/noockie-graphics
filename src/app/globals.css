@@ -13,8 +13,18 @@
     overflow-x: hidden;
   }
 
+  section[id] {
+    scroll-margin-top: 6rem;
+  }
+
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-space-grotesk), sans-serif;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
   }
 }
 

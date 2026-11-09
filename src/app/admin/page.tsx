@@ -16,7 +16,9 @@ import {
   Search,
   ExternalLink,
   X,
-  Check
+  Check,
+  Image as ImageIcon,
+  Upload
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 
@@ -39,6 +41,7 @@ interface Project {
   category: string;
   client: string;
   location: string;
+  imageUrl: string;
   featured: boolean;
 }
 
@@ -82,12 +85,35 @@ export default function AdminDashboard() {
     }
   ]);
 
-  // State for Portfolio Projects
+  // State for Portfolio Projects (Now with Image/Mockup URLs)
   const [projects, setProjects] = useState<Project[]>([
-    { id: "PROJ-1", title: "Savannah Roast Co. Flagship Storefront", category: "3D Signage", client: "Savannah Roast Co.", location: "Westlands", featured: true },
-    { id: "PROJ-2", title: "Africhain Corporate Identity", category: "Branding", client: "Africhain", location: "Kilimani", featured: true },
-    { id: "PROJ-3", title: "Swahili Spice LED Lightboxes", category: "Lightboxes", client: "Swahili Spice", location: "Mombasa", featured: false },
-    { id: "PROJ-4", title: "Trans-East Fleet Branding", category: "Print", client: "Trans-East", location: "Mombasa Road", featured: false }
+    { 
+      id: "PROJ-1", 
+      title: "Savannah Roast Co. Flagship Storefront", 
+      category: "3D Signage", 
+      client: "Savannah Roast Co.", 
+      location: "Westlands", 
+      imageUrl: "https://images.unsplash.com/photo-1563986768609-322da13575f3?q=80&w=800&auto=format&fit=crop",
+      featured: true 
+    },
+    { 
+      id: "PROJ-2", 
+      title: "Africhain DOOH Kinetic Motion Reel", 
+      category: "LED Neon", 
+      client: "Africhain", 
+      location: "Kilimani", 
+      imageUrl: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=800&auto=format&fit=crop",
+      featured: true 
+    },
+    { 
+      id: "PROJ-3", 
+      title: "Swahili Spice Acrylic Backlit Signage", 
+      category: "Lightboxes", 
+      client: "Swahili Spice", 
+      location: "Mombasa", 
+      imageUrl: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=800&auto=format&fit=crop",
+      featured: false 
+    }
   ]);
 
   // Modal & Form State for Adding / Editing Projects
@@ -98,13 +124,26 @@ export default function AdminDashboard() {
     category: "3D Signage",
     client: "",
     location: "",
+    imageUrl: "",
     featured: false,
   });
+
+  // Handle image file upload to base64 preview
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData((prev) => ({ ...prev, imageUrl: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   // Open Modal for Creation
   const handleOpenAddModal = () => {
     setEditingProject(null);
-    setFormData({ title: "", category: "3D Signage", client: "", location: "", featured: false });
+    setFormData({ title: "", category: "3D Signage", client: "", location: "", imageUrl: "", featured: false });
     setIsModalOpen(true);
   };
 
@@ -116,6 +155,7 @@ export default function AdminDashboard() {
       category: project.category,
       client: project.client,
       location: project.location,
+      imageUrl: project.imageUrl,
       featured: project.featured,
     });
     setIsModalOpen(true);
@@ -126,14 +166,15 @@ export default function AdminDashboard() {
     e.preventDefault();
     if (!formData.title || !formData.client) return;
 
+    const fallbackImg = "https://images.unsplash.com/photo-1563986768609-322da13575f3?q=80&w=800&auto=format&fit=crop";
+
     if (editingProject) {
-      // Update existing project
-      setProjects(projects.map(p => p.id === editingProject.id ? { ...p, ...formData } : p));
+      setProjects(projects.map(p => p.id === editingProject.id ? { ...p, ...formData, imageUrl: formData.imageUrl || fallbackImg } : p));
     } else {
-      // Create new project
       const newProj: Project = {
         id: `PROJ-${Date.now()}`,
         ...formData,
+        imageUrl: formData.imageUrl || fallbackImg,
       };
       setProjects([newProj, ...projects]);
     }
@@ -225,7 +266,6 @@ export default function AdminDashboard() {
             <ExternalLink className="w-3.5 h-3.5" />
           </a>
 
-          {/* Interactive Sign Out Button */}
           <button 
             onClick={() => signOut({ callbackUrl: "/login" })}
             className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-mono text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all font-medium"
@@ -415,9 +455,8 @@ export default function AdminDashboard() {
         {activeTab === "portfolio" && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <p className="text-xs text-white/60">Add, edit, or remove past signage installations and branding projects.</p>
+              <p className="text-xs text-white/60">Add, edit, or remove past signage installations and branding mockups.</p>
               
-              {/* Functional Add New Project Button */}
               <button 
                 onClick={handleOpenAddModal}
                 className="px-4 py-2 bg-accent hover:bg-accent-hover text-white text-xs font-medium rounded-lg flex items-center gap-2 transition-all shadow-lg shadow-accent/20"
@@ -426,33 +465,60 @@ export default function AdminDashboard() {
               </button>
             </div>
 
+            {/* Portfolio Grid with Image Mockup Previews */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {projects.map((proj) => (
-                <div key={proj.id} className="bg-charcoal-light border border-white/10 p-6 rounded-2xl flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] font-mono text-accent uppercase tracking-wider">
-                      {proj.category} • {proj.location} {proj.featured && "• [Featured]"}
-                    </span>
-                    <h3 className="font-display font-bold text-lg text-ivory mt-1">{proj.title}</h3>
-                    <p className="text-xs text-white/50 mt-1">Client: {proj.client}</p>
+                <div key={proj.id} className="bg-charcoal-light border border-white/10 rounded-2xl overflow-hidden flex flex-col justify-between group">
+                  
+                  {/* Mockup Image Header */}
+                  <div className="relative w-full h-44 bg-charcoal overflow-hidden border-b border-white/10">
+                    {proj.imageUrl ? (
+                      <img 
+                        src={proj.imageUrl} 
+                        alt={proj.title} 
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center text-white/30">
+                        <ImageIcon className="w-8 h-8 mb-1" />
+                        <span className="text-[10px] font-mono uppercase">No Mockup Image</span>
+                      </div>
+                    )}
+                    {proj.featured && (
+                      <span className="absolute top-3 right-3 bg-accent text-white text-[9px] font-mono px-2 py-0.5 rounded-full font-bold shadow-md">
+                        FEATURED
+                      </span>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    {/* Functional Edit / Pen Button */}
-                    <button 
-                      onClick={() => handleOpenEditModal(proj)}
-                      className="p-2 rounded-lg bg-white/5 border border-white/10 text-white/70 hover:text-ivory hover:bg-white/10 transition-colors"
-                      title="Edit Project"
-                    >
-                      <Edit3 className="w-4 h-4" />
-                    </button>
-                    <button 
-                      onClick={() => setProjects(projects.filter(p => p.id !== proj.id))}
-                      className="p-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-colors"
-                      title="Delete Project"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+
+                  {/* Project Details */}
+                  <div className="p-6 flex items-start justify-between gap-4">
+                    <div>
+                      <span className="text-[10px] font-mono text-accent uppercase tracking-wider">
+                        {proj.category} • {proj.location}
+                      </span>
+                      <h3 className="font-display font-bold text-lg text-ivory mt-1 leading-snug">{proj.title}</h3>
+                      <p className="text-xs text-white/50 mt-1">Client: {proj.client}</p>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <button 
+                        onClick={() => handleOpenEditModal(proj)}
+                        className="p-2 rounded-lg bg-white/5 border border-white/10 text-white/70 hover:text-ivory hover:bg-white/10 transition-colors"
+                        title="Edit Project & Image"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={() => setProjects(projects.filter(p => p.id !== proj.id))}
+                        className="p-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-colors"
+                        title="Delete Project"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
+
                 </div>
               ))}
             </div>
@@ -501,10 +567,10 @@ export default function AdminDashboard() {
 
       </main>
 
-      {/* ================= ADD / EDIT PROJECT MODAL ================= */}
+      {/* ================= ADD / EDIT PROJECT MODAL WITH IMAGE UPLOAD ================= */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-charcoal-light border border-white/15 w-full max-w-lg rounded-2xl p-6 md:p-8 shadow-2xl relative animate-in fade-in zoom-in duration-200">
+          <div className="bg-charcoal-light border border-white/15 w-full max-w-lg rounded-2xl p-6 md:p-8 shadow-2xl relative animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
             
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-4 mb-6 border-b border-white/10">
@@ -521,6 +587,62 @@ export default function AdminDashboard() {
 
             {/* Modal Form */}
             <form onSubmit={handleSaveProject} className="space-y-4">
+              
+              {/* Project Image Preview & Upload Inputs */}
+              <div>
+                <label className="block text-[11px] font-mono uppercase tracking-wider text-white/70 mb-2">
+                  Project Mockup Image
+                </label>
+
+                {/* Preview Box */}
+                <div className="w-full h-36 bg-charcoal border border-dashed border-white/20 rounded-xl overflow-hidden mb-3 relative flex flex-col items-center justify-center">
+                  {formData.imageUrl ? (
+                    <>
+                      <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, imageUrl: "" })}
+                        className="absolute top-2 right-2 bg-black/70 text-white p-1 rounded-full hover:bg-red-500 transition-colors"
+                        title="Remove Image"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </>
+                  ) : (
+                    <div className="flex flex-col items-center text-white/40">
+                      <ImageIcon className="w-8 h-8 mb-1" />
+                      <span className="text-[11px] font-mono">No Image Uploaded</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* URL or Upload Toggle */}
+                <div className="space-y-2">
+                  <div className="relative">
+                    <input 
+                      type="text" 
+                      value={formData.imageUrl}
+                      onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                      placeholder="Paste Image URL (https://...)" 
+                      className="w-full bg-charcoal border border-white/15 rounded-lg px-3.5 py-2 text-ivory text-xs focus:outline-none focus:border-accent"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-center w-full">
+                    <label className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg cursor-pointer text-xs font-mono text-white/70 transition-all">
+                      <Upload className="w-3.5 h-3.5 text-accent" />
+                      <span>Upload Local File</span>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={handleFileUpload} 
+                        className="hidden" 
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-[11px] font-mono uppercase tracking-wider text-white/70 mb-1.5">
                   Project Title

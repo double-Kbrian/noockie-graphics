@@ -14,7 +14,9 @@ import {
   Phone, 
   LogOut,
   Search,
-  ExternalLink
+  ExternalLink,
+  X,
+  Check
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 
@@ -44,7 +46,7 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<"overview" | "inquiries" | "portfolio" | "settings">("overview");
   
   // State for Inquiries / Leads
-  const inquiries: Inquiry[] = [
+  const [inquiries] = useState<Inquiry[]>([
     {
       id: "INQ-001",
       name: "Chef David Mwangi",
@@ -78,7 +80,7 @@ export default function AdminDashboard() {
       phone: "+254 733 111 222",
       email: "omar@swahilispice.co.ke"
     }
-  ];
+  ]);
 
   // State for Portfolio Projects
   const [projects, setProjects] = useState<Project[]>([
@@ -88,13 +90,64 @@ export default function AdminDashboard() {
     { id: "PROJ-4", title: "Trans-East Fleet Branding", category: "Print", client: "Trans-East", location: "Mombasa Road", featured: false }
   ]);
 
+  // Modal & Form State for Adding / Editing Projects
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [formData, setFormData] = useState({
+    title: "",
+    category: "3D Signage",
+    client: "",
+    location: "",
+    featured: false,
+  });
+
+  // Open Modal for Creation
+  const handleOpenAddModal = () => {
+    setEditingProject(null);
+    setFormData({ title: "", category: "3D Signage", client: "", location: "", featured: false });
+    setIsModalOpen(true);
+  };
+
+  // Open Modal for Editing
+  const handleOpenEditModal = (project: Project) => {
+    setEditingProject(project);
+    setFormData({
+      title: project.title,
+      category: project.category,
+      client: project.client,
+      location: project.location,
+      featured: project.featured,
+    });
+    setIsModalOpen(true);
+  };
+
+  // Save Project (Create or Update)
+  const handleSaveProject = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.title || !formData.client) return;
+
+    if (editingProject) {
+      // Update existing project
+      setProjects(projects.map(p => p.id === editingProject.id ? { ...p, ...formData } : p));
+    } else {
+      // Create new project
+      const newProj: Project = {
+        id: `PROJ-${Date.now()}`,
+        ...formData,
+      };
+      setProjects([newProj, ...projects]);
+    }
+
+    setIsModalOpen(false);
+  };
+
   // Quick stat counters
   const totalInquiries = inquiries.length;
   const newLeads = inquiries.filter(i => i.status === "New").length;
   const totalProjects = projects.length;
 
   return (
-    <div className="min-h-screen bg-charcoal text-ivory flex flex-col md:flex-row">
+    <div className="min-h-screen bg-charcoal text-ivory flex flex-col md:flex-row relative">
       
       {/* Sidebar Navigation */}
       <aside className="w-full md:w-64 bg-charcoal-light border-r border-white/10 p-6 flex flex-col justify-between">
@@ -206,7 +259,6 @@ export default function AdminDashboard() {
         {/* ================= TAB 1: OVERVIEW ================= */}
         {activeTab === "overview" && (
           <div className="space-y-8">
-            {/* Stat Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="bg-charcoal-light border border-white/10 p-6 rounded-2xl">
                 <div className="flex items-center justify-between text-white/50 mb-4">
@@ -364,7 +416,12 @@ export default function AdminDashboard() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <p className="text-xs text-white/60">Add, edit, or remove past signage installations and branding projects.</p>
-              <button className="px-4 py-2 bg-accent hover:bg-accent-hover text-white text-xs font-medium rounded-lg flex items-center gap-2 transition-all">
+              
+              {/* Functional Add New Project Button */}
+              <button 
+                onClick={handleOpenAddModal}
+                className="px-4 py-2 bg-accent hover:bg-accent-hover text-white text-xs font-medium rounded-lg flex items-center gap-2 transition-all shadow-lg shadow-accent/20"
+              >
                 <Plus className="w-4 h-4" /> Add New Project
               </button>
             </div>
@@ -374,18 +431,24 @@ export default function AdminDashboard() {
                 <div key={proj.id} className="bg-charcoal-light border border-white/10 p-6 rounded-2xl flex items-center justify-between">
                   <div>
                     <span className="text-[10px] font-mono text-accent uppercase tracking-wider">
-                      {proj.category} • {proj.location}
+                      {proj.category} • {proj.location} {proj.featured && "• [Featured]"}
                     </span>
                     <h3 className="font-display font-bold text-lg text-ivory mt-1">{proj.title}</h3>
                     <p className="text-xs text-white/50 mt-1">Client: {proj.client}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button className="p-2 rounded-lg bg-white/5 border border-white/10 text-white/70 hover:text-ivory hover:bg-white/10">
+                    {/* Functional Edit / Pen Button */}
+                    <button 
+                      onClick={() => handleOpenEditModal(proj)}
+                      className="p-2 rounded-lg bg-white/5 border border-white/10 text-white/70 hover:text-ivory hover:bg-white/10 transition-colors"
+                      title="Edit Project"
+                    >
                       <Edit3 className="w-4 h-4" />
                     </button>
                     <button 
                       onClick={() => setProjects(projects.filter(p => p.id !== proj.id))}
-                      className="p-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20"
+                      className="p-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-colors"
+                      title="Delete Project"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -437,6 +500,124 @@ export default function AdminDashboard() {
         )}
 
       </main>
+
+      {/* ================= ADD / EDIT PROJECT MODAL ================= */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-charcoal-light border border-white/15 w-full max-w-lg rounded-2xl p-6 md:p-8 shadow-2xl relative animate-in fade-in zoom-in duration-200">
+            
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-4 mb-6 border-b border-white/10">
+              <h3 className="font-display font-bold text-xl text-ivory">
+                {editingProject ? "Edit Portfolio Project" : "Add New Portfolio Project"}
+              </h3>
+              <button 
+                onClick={() => setIsModalOpen(false)}
+                className="text-white/40 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={handleSaveProject} className="space-y-4">
+              <div>
+                <label className="block text-[11px] font-mono uppercase tracking-wider text-white/70 mb-1.5">
+                  Project Title
+                </label>
+                <input 
+                  type="text" 
+                  required
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  placeholder="e.g. Westlands Rooftop Halo Signage" 
+                  className="w-full bg-charcoal border border-white/15 rounded-lg px-3.5 py-2.5 text-ivory text-xs focus:outline-none focus:border-accent"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[11px] font-mono uppercase tracking-wider text-white/70 mb-1.5">
+                    Category
+                  </label>
+                  <select 
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full bg-charcoal border border-white/15 rounded-lg px-3 py-2.5 text-ivory text-xs focus:outline-none focus:border-accent"
+                  >
+                    <option value="3D Signage">3D Signage</option>
+                    <option value="LED Neon">LED Neon</option>
+                    <option value="Branding">Branding</option>
+                    <option value="Lightboxes">Lightboxes</option>
+                    <option value="Print">Print</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-mono uppercase tracking-wider text-white/70 mb-1.5">
+                    Location / Area
+                  </label>
+                  <input 
+                    type="text" 
+                    required
+                    value={formData.location}
+                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    placeholder="e.g. Westlands, Nairobi" 
+                    className="w-full bg-charcoal border border-white/15 rounded-lg px-3.5 py-2.5 text-ivory text-xs focus:outline-none focus:border-accent"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-mono uppercase tracking-wider text-white/70 mb-1.5">
+                  Client Name
+                </label>
+                <input 
+                  type="text" 
+                  required
+                  value={formData.client}
+                  onChange={(e) => setFormData({ ...formData, client: e.target.value })}
+                  placeholder="e.g. Savannah Roast Co." 
+                  className="w-full bg-charcoal border border-white/15 rounded-lg px-3.5 py-2.5 text-ivory text-xs focus:outline-none focus:border-accent"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-2">
+                <input 
+                  type="checkbox" 
+                  id="featured"
+                  checked={formData.featured}
+                  onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
+                  className="w-4 h-4 accent-accent rounded cursor-pointer"
+                />
+                <label htmlFor="featured" className="text-xs text-white/80 cursor-pointer">
+                  Feature this project on main portfolio grid
+                </label>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="flex items-center justify-end gap-3 pt-6 mt-6 border-t border-white/10">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2.5 bg-white/5 hover:bg-white/10 text-white/70 text-xs font-mono uppercase tracking-wider rounded-lg transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 bg-accent hover:bg-accent-hover text-white text-xs font-mono uppercase tracking-wider font-bold rounded-lg transition-all shadow-lg shadow-accent/20 flex items-center gap-1.5"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>{editingProject ? "Update Project" : "Publish Project"}</span>
+                </button>
+              </div>
+            </form>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
